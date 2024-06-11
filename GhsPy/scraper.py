@@ -36,7 +36,7 @@ def chemGHScode(pubchem_url=None):
     """
     The chemGHSclass func will return the GHS classification of any chemical published in Pubchem
     by scrapping the website with selenium and comparing the codes found within its html source 
-    with the dictionary database
+    and the local dictionary database
     """
     
     chrome_options = Options()
@@ -44,13 +44,12 @@ def chemGHScode(pubchem_url=None):
 
     driver = webdriver.Chrome()
     driver.get(pubchem_url)
-    time.sleep(5) #Waits for the page to load completely
+    time.sleep(0.5) #Waits for the page to load completely
     page_source = driver.page_source
     driver.quit()
     
     soup = BeautifulSoup(page_source, 'html.parser')
 
-    code_dict = CodeDict()
     HazardStat = soup.find_all(string=lambda text: any(s in text for s in code_dict.code))
 
     codes_found = []
@@ -62,5 +61,28 @@ def chemGHScode(pubchem_url=None):
                 codes_found.append(smaller_strings)
     return codes_found
 
+class labelBuilder():
+
+    def __init__(self,codes_found):
+        self.dict_cont = {}
+        for code in codes_found:
+            for index, ref_code in enumerate(code_dict.code):
+                if code == ref_code:
+                    self.dict_cont[code] = [
+                        code_dict.state[index], 
+                        code_dict.clase[index], 
+                        code_dict.cate[index], 
+                        code_dict.div[index],
+                        code_dict.picto[index],
+                        code_dict.signal_p[index],
+                        ]
+        """self.prod_id = []
+        self.sign_w = []
+        self.hazard_stat = []
+        self.prec_stat = []
+        self.supp_info = []
+        self.picto = []"""
+
+code_dict = CodeDict()
 result = chemGHScode("https://pubchem.ncbi.nlm.nih.gov/compound/2244")
 print(result)
