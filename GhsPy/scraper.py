@@ -30,6 +30,7 @@ class CodeDict:
                     self.div.append(parts[4])
                     self.picto.append(parts[5])
                     self.signal_p.append(parts[6])
+code_dict = CodeDict()
 
 def chemGHScode(pubchem_url=None):
 
@@ -44,26 +45,30 @@ def chemGHScode(pubchem_url=None):
 
     driver = webdriver.Chrome()
     driver.get(pubchem_url)
-    time.sleep(0.5) #Waits for the page to load completely
+    time.sleep(5) #Waits for the page to load completely
     page_source = driver.page_source
     driver.quit()
     
     soup = BeautifulSoup(page_source, 'html.parser')
-
+    title = soup.select("title")[0].getText()
+    code_dict = CodeDict()
     HazardStat = soup.find_all(string=lambda text: any(s in text for s in code_dict.code))
-
     codes_found = []
+    
     for large_string in HazardStat:
         nocommas = large_string.replace(",", " ")
         listOfstrings = nocommas.split()
         for smaller_strings in listOfstrings:
             if smaller_strings in code_dict.code:
                 codes_found.append(smaller_strings)
-    return codes_found
+    return codes_found, title
 
-class labelBuilder():
+class Label_contents():
 
-    def __init__(self,codes_found):
+    def __init__(self,codes_found, title):
+        
+        self.title = title.split(" ")[0]
+        
         self.dict_cont = {}
         for code in codes_found:
             for index, ref_code in enumerate(code_dict.code):
@@ -76,13 +81,50 @@ class labelBuilder():
                         code_dict.picto[index],
                         code_dict.signal_p[index],
                         ]
-        """self.prod_id = []
-        self.sign_w = []
-        self.hazard_stat = []
-        self.prec_stat = []
-        self.supp_info = []
-        self.picto = []"""
+        
+        active_pictograms = set()
+        for key, value in self.dict_cont.items():
+            if value[-2] == "":
+                break
+            match value[-2]:
+                case "GHS01":
+                    active_pictograms.add("GHS01")
+                case "GHS02":
+                    active_pictograms.add("GHS02")
+                case "GHS03":
+                    active_pictograms.add("GHS03")
+                case "GHS04":
+                    active_pictograms.add("GHS04")
+                case "GHS05":
+                    active_pictograms.add("GHS05")
+                case "GHS06":
+                    active_pictograms.add("GHS06")
+                case "GHS07":
+                    active_pictograms.add("GHS07")
+                case "GHS08":
+                    active_pictograms.add("GHS08")
+                case "GHS09":
+                    active_pictograms.add("GHS09")
+        self.active_pictograms = active_pictograms
 
-code_dict = CodeDict()
-result = chemGHScode("https://pubchem.ncbi.nlm.nih.gov/compound/2244")
-print(result)
+        signal_word = str
+        for key, value in self.dict_cont.items():
+            if key.startswith("P"):
+                break
+            if value[-1] == "Danger":
+                signal_word = "Danger"
+                break
+            elif value[-1] == "Warning":
+                signal_word = "Warning"
+            else:
+                signal_word = None
+        self.signal_word = signal_word
+
+def textLabel():
+    # TODO
+    return
+                    
+
+result, title = chemGHScode("https://pubchem.ncbi.nlm.nih.gov/compound/24408")
+label = Label_contents(result, title)
+print(label.title, label.active_pictograms, label.signal_word)
