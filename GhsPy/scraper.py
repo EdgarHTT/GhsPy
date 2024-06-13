@@ -69,21 +69,28 @@ class Label_contents():
         
         self.title = title.split(" ")[0]
         
-        self.dict_cont = {}
+        self.hazard_cont = {}
+        self.prec_cont={}
         for code in codes_found:
             for index, ref_code in enumerate(code_dict.code):
                 if code == ref_code:
-                    self.dict_cont[code] = [
-                        code_dict.state[index], 
-                        code_dict.clase[index], 
-                        code_dict.cate[index], 
-                        code_dict.div[index],
-                        code_dict.picto[index],
-                        code_dict.signal_p[index],
+                    if code.startswith("H"):
+                        self.hazard_cont[code] = [
+                            code_dict.state[index], 
+                            code_dict.clase[index], 
+                            code_dict.cate[index], 
+                            code_dict.div[index],
+                            code_dict.picto[index],
+                            code_dict.signal_p[index],
+                            ]
+                    else:
+                        self.prec_cont[code]=[
+                            code_dict.state[index]
                         ]
+
         
         active_pictograms = set()
-        for key, value in self.dict_cont.items():
+        for key, value in self.hazard_cont.items():
             if value[-2] == "":
                 break
             match value[-2]:
@@ -108,7 +115,7 @@ class Label_contents():
         self.active_pictograms = active_pictograms
 
         signal_word = str
-        for key, value in self.dict_cont.items():
+        for key, value in self.hazard_cont.items():
             if key.startswith("P"):
                 break
             if value[-1] == "Danger":
@@ -124,7 +131,3 @@ def textLabel():
     # TODO
     return
                     
-
-result, title = chemGHScode("https://pubchem.ncbi.nlm.nih.gov/compound/24408")
-label = Label_contents(result, title)
-print(label.title, label.active_pictograms, label.signal_word)
