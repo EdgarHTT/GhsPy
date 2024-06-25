@@ -126,8 +126,4 @@ class Label_contents():
             else:
                 signal_word = None
         self.signal_word = signal_word
-
-def textLabel():
-    # TODO
-    return
-                    
+       
